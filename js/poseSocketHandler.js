@@ -29,7 +29,8 @@ const captureFrame = (frameDisplay, ctx) => {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const connectToServer = async (session, frameDisplay, ctx) => {
-  const serverUrl = `ws://localhost:8001/ws/pose_session/${session}/`;
+  const serverUrl = `wss://d2fe-46-58-147-98.ngrok-free.app/ws/pose_session/${session}/`;
+  // const serverUrl = `ws://localhost:8001/ws/pose_session/${session}/`;
   // const serverUrl = `wss://ai-personal-trainer.onrender.com/ws/pose_session/${session}/`;
   socket = new WebSocket(serverUrl);
 

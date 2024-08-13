@@ -41,6 +41,8 @@ const startExerciseDetection = async (sessionId = null) => {
     };
 
     socket.onmessage = (event) => {
+      console.log("message called");
+      console.log(`message data: ${event.data}`);
       const data = JSON.parse(event.data);
       updateUI(data);
     };
