@@ -3,7 +3,11 @@ const initMediaStream = async () =>
 
 const mediaStream = await initMediaStream();
 
-function setupWebSocket(sessionId, element) {
+function handleServerRes(data) {
+  console.log("Processed data from server:", data);
+}
+
+async function setupWebSocket(sessionId, element) {
   let mediaRecorder;
   let ws;
 
@@ -13,17 +17,39 @@ function setupWebSocket(sessionId, element) {
 
   closeConnection(element, ws);
 
-  ws.onopen = () => {
-    console.log("Connection opened.");
-    mediaRecorder = new MediaRecorder(mediaStream);
-    mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0) {
-        ws.send(event.data);
-      }
+  await new Promise((resolve, reject) => {
+    ws.onopen = () => {
+      console.log("Connection opened.");
+      mediaRecorder = new MediaRecorder(mediaStream);
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          ws.send(event.data);
+        }
+      };
+      mediaRecorder.start(100);
+      resolve();
     };
-    mediaRecorder.start(100);
+    ws.onerror = (error) => {
+      console.error("WebSocket Error: ", error);
+      reject();
+    };
+  });
+
+  ws.onmessage = (e) => {
+    const receivedData = JSON.parse(e.data);
+    console.log("Message from server:", receivedData);
+    switch (receivedData.type) {
+      case "server_response":
+        handleServerRes(receivedData.data);
+        break;
+      case "error":
+        console.error("Server error:", receivedData.message);
+        break;
+      default:
+        console.log("Unknown message type:", receivedData.type);
+    }
   };
-  ws.onerror = (error) => console.error("WebSocket Error: ", error);
+
   ws.onclose = () => {
     console.log("WebSocket connection closed");
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
@@ -33,10 +59,10 @@ function setupWebSocket(sessionId, element) {
 }
 
 export async function setupForm(form, uuid, end) {
-  form.onsubmit = (e) => {
+  form.onsubmit = async (e) => {
     e.preventDefault();
     console.log("uuid2 :", uuid.value);
-    setupWebSocket(uuid.value, end);
+    await setupWebSocket(uuid.value, end);
   };
 }
 
@@ -95,17 +121,13 @@ async function setupJsonWebSocket(sessionId, data, p, end) {
 
   // Set up message handler
   ws.onmessage = (e) => {
-    const receivedData = JSON.parse(e.data);
-    console.log("Message from server:", receivedData);
-    switch (receivedData.type) {
-      case "server_response":
-        handleServerResponse(receivedData.data, p);
-        break;
-      case "error":
-        console.error("Server error:", receivedData.message);
-        break;
-      default:
-        console.log("Unknown message type:", receivedData.type);
+    try {
+      const receivedData = JSON.parse(e.data);
+      console.log("Message from server:", receivedData);
+    } catch (e) {
+      console.log(
+        `some errors jsut accoured with data recived from server ${e}`,
+      );
     }
   };
 
@@ -137,4 +159,13 @@ export let setupJsonForm = async (form, session, name, age, paragraph, end) => {
       console.error("Error setting up WebSocket:", e);
     }
   };
+};
+
+export const setupForward = (element) => {
+  element.innerHTML = "Try other way";
+  element.addEventListener("click", () => {
+    console.log("clicked");
+    console.log(Window);
+    document.location.assign("html/frame2.html");
+  });
 };

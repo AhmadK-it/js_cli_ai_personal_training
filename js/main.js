@@ -1,5 +1,11 @@
-import "./style.css";
-import { setupVideo, setupForm, setupLogin, setupJsonForm } from "./counter.js";
+import "../css/style.css";
+import {
+  setupVideo,
+  setupForm,
+  setupLogin,
+  setupJsonForm,
+  setupForward,
+} from "./videoSocketHandler.js";
 
 document.querySelector("#app").innerHTML = `
   <div>
@@ -11,10 +17,16 @@ document.querySelector("#app").innerHTML = `
       <input  id="uuid" type="text" placeholder="enter the id"></input>
       <input  type="submit" value="connect"></input>
     </form>
+
+    <div class="card">
+      <button id="other" type="button"></button>
+    </div>
+
     <div class="card">
       <button id="stop" type="button"></button>
       <button id="login" type="button"></button>
     </div>
+
     <section class="form">
       <form id="Jsonform" action="/submit" method="POST">
           <label for="json_id">session id:</label>
@@ -33,6 +45,7 @@ document.querySelector("#app").innerHTML = `
   </div>
 `;
 
+setupForward(document.querySelector("#other"));
 setupVideo(document.getElementById("video"));
 setupForm(
   document.querySelector("#sessionForm"),
